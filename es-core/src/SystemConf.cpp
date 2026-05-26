@@ -176,7 +176,7 @@ bool SystemConf::saveSystemConf()
 		if (!lineFound)
 		{
 			std::string val = confMap[it];
-			if (!val.empty() && val != "auto")
+			if (!val.empty() && val != "auto" && val != "default")
 				fileLines.push_back(key + val);
 		}
 	}

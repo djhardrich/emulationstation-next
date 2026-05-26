@@ -176,12 +176,21 @@ GuiControllersSettings::GuiControllersSettings(Window* wnd, int autoSel) : GuiSe
 
 #if defined(BATOCERA) || defined(ROCKNIX) || defined(WIN32)
 		// PAIR A BLUETOOTH CONTROLLER OR BT AUDIO DEVICE
-		addEntry(_("PAIR A BLUETOOTH DEVICE MANUALLY"), false, [window]
+		addEntry(_("PAIR A BLUETOOTH DEVICE MANUALLY"), false, [window, this]
 		{
 			if (ThreadedBluetooth::isRunning())
 				window->pushGui(new GuiMsgBox(window, _("BLUETOOTH SCAN IS ALREADY RUNNING.")));
 			else
-				window->pushGui(new GuiBluetoothPair(window));
+			{
+				GuiControllersSettings* cs = this;
+				window->pushGui(new GuiBluetoothPair(window, [cs, window]()
+				{
+					Window* parent = window;
+					cs->setSave(false);
+					delete cs;
+					openControllersSettings(parent);
+				}));
+			}
 		});
 #endif
 		// FORGET BLUETOOTH CONTROLLERS OR BT AUDIO DEVICES

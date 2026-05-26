@@ -9,7 +9,7 @@
 class GuiBluetoothPair : public MenuComponent
 {
 public:
-	GuiBluetoothPair(Window* window);
+	GuiBluetoothPair(Window* window, std::function<void()> onPairSuccess = nullptr);
 	~GuiBluetoothPair();
 
 	virtual bool input(InputConfig* config, Input input) override;
@@ -26,6 +26,7 @@ private:
 	void		 onPairDevice(const std::string& macAddress);
 
 	std::function<void(std::string)> mSaveFunction;
+	std::function<void()> mOnPairSuccess;
 
 	BusyComponent mBusyAnim;
 

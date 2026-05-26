@@ -15,8 +15,8 @@
 
 GuiBluetoothPair* GuiBluetoothPair::Instance = nullptr;
 
-GuiBluetoothPair::GuiBluetoothPair(Window* window)
-	: MenuComponent(window, _("PAIR A BLUETOOTH DEVICE")), mBusyAnim(window), mIsPairing(false)
+GuiBluetoothPair::GuiBluetoothPair(Window* window, std::function<void()> onPairSuccess)
+	: MenuComponent(window, _("PAIR A BLUETOOTH DEVICE")), mBusyAnim(window), mIsPairing(false), mOnPairSuccess(onPairSuccess)
 {
 	auto theme = ThemeData::getMenuTheme();
 		
@@ -137,6 +137,11 @@ void GuiBluetoothPair::onPairDevice(const std::string& macAddress)
 		mIsPairing = false;
 
 		if (ret)
+		{
+			auto cb = mOnPairSuccess;
 			delete this;
+			if (cb)
+				cb();
+		}
 	}));
 }
