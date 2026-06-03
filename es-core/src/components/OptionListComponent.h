@@ -88,10 +88,11 @@ private:
 					}
 					else
 					{
-						row.makeAcceptInputHandler([this, &e]
+						size_t selIdx = (size_t)(it - mParent->mEntries.begin());
+						row.makeAcceptInputHandler([this, selIdx]
 						{
-							mParent->mEntries.at(mParent->getSelectedId()).selected = false;
-							e.selected = true;
+							for (auto& en : mParent->mEntries) en.selected = false;
+							mParent->mEntries.at(selIdx).selected = true;
 							mParent->onSelectedChanged();
 							delete this;
 						});
@@ -137,10 +138,14 @@ private:
 					else {
 						// input handler for non-multiselect
 						// update selected value and close
-						row.makeAcceptInputHandler([this, &e]
+						// Capture the index by value: capturing the loop-local
+						// reference 'e' left the picked entry's flag unset (0
+						// selected) -> getSelected() threw -> ES aborted.
+						size_t selIdx = (size_t)(it - mParent->mEntries.begin());
+						row.makeAcceptInputHandler([this, selIdx]
 						{
-							mParent->mEntries.at(mParent->getSelectedId()).selected = false;
-							e.selected = true;
+							for (auto& en : mParent->mEntries) en.selected = false;
+							mParent->mEntries.at(selIdx).selected = true;
 							mParent->onSelectedChanged();
 							delete this;
 						});
@@ -345,7 +350,9 @@ public:
 	{
 		assert(mMultiSelect == false);
 		auto selected = getSelectedObjects();
-		assert(selected.size() == 1);
+		// Never throw/abort on an empty selection (was selected.at(0) -> SIGABRT).
+		if (selected.empty())
+			return firstSelected;
 		return selected.at(0);
 	}
 

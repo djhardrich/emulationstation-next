@@ -1942,7 +1942,15 @@ void GuiMenu::openSystemSettings()
 		if (optionsGovernors->changed()) {
 			SystemConf::getInstance()->set("system.cpugovernor", optionsGovernors->getSelected());
 		}
-		Utils::Platform::runSystemCommand("/usr/bin/sh -lc \". /etc/profile.d/099-freqfunctions; "+ optionsGovernors->getSelected() + "\"", "", nullptr);
+		// Apply the governor directly to sysfs. The old approach sourced
+		// 099-freqfunctions in a login shell (-l) and called the value as a
+		// shell function; under ES's fork/exec runtime that login sourcing
+		// aborts before the function runs, so NO governor was ever applied.
+		// echo to scaling_governor works for every governor the kernel lists.
+		// "default" means "leave the kernel default in place".
+		std::string gov = optionsGovernors->getSelected();
+		if (!gov.empty() && gov != "default")
+			Utils::Platform::runSystemCommand("echo " + gov + " | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor > /dev/null 2>&1", "", nullptr);
 	});
 
 	// GPU performance mode with enhanced power savings
